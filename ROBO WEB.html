@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PEDRO DON - Captura de Localização</title>
+  <style>
+    body {
+      font-family: 'Arial', sans-serif;
+      background-color: #0e0d0d;
+      /* Azul metálico quase negro */
+      margin: 0;
+      padding: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      animation: fadeIn 1s;
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+      }
+
+      to {
+        opacity: 1;
+      }
+    }
+
+    .container {
+      background-color: rgb(250, 216, 177);
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 4px 20px hsla(0, 9%, 94%, 0.2);
+      text-align: center;
+      width: 90%;
+      max-width: 700px;
+      /* Largura aumentada */
+      transition: transform 0.3s;
+    }
+
+    .container:hover {
+      transform: translateY(-5px);
+    }
+
+    h1 {
+      color: #0c0b0b;
+      margin-bottom: 10px;
+      font-size: 32px;
+    }
+
+    h2 {
+      color: #0a0a0a;
+      margin-bottom: 20px;
+      font-size: 24px;
+    }
+
+    p {
+      font-size: 16px;
+      color: #333;
+      line-height: 1.6;
+      margin-bottom: 20px;
+    }
+
+    button {
+      background-color: #ff5e00;
+      color: white;
+      border: none;
+      padding: 12px 20px;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 16px;
+      transition: background-color 0.3s, transform 0.2s;
+      margin-top: 10px;
+      width: 100%;
+    }
+
+    button:hover {
+      background-color: #e7ecf1;
+      transform: translateY(-2px);
+    }
+
+    button:active {
+      transform: translateY(0);
+    }
+
+    .location-info {
+      margin-top: 20px;
+      padding: 15px;
+      background-color: #f0f2f5;
+      border-radius: 5px;
+      font-size: 14px;
+      white-space: pre-wrap;
+      border: 2px solid #eed5a6;
+      transition: border-color 0.3s;
+    }
+
+    .error-message {
+      color: #5c020b;
+      margin-top: 10px;
+    }
+
+    .back-button {
+      background-color: #e07116;
+      /* Azul metálico quase negro para o botão de voltar */
+      color: white;
+      padding: 10px 20px;
+      border-radius: 5px;
+      text-decoration: none;
+      display: inline-block;
+      font-size: 16px;
+      margin-top: 20px;
+    }
+
+    .back-button:hover {
+      background-color: #fc6b32;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <h1>PEDRO DON</h1>
+    <!-- Nome do aplicativo -->
+    <h2>Captura de Localização</h2>
+
+    <p>
+      Suas informações de localização são enviadas automaticamente para nosso
+      sistema e podem ser utilizadas, como preenchimento de
+      formulários ou serviços baseados em localização. Clique no botão abaixo
+      para obter sua localização ou utilize os botões de cópia para
+      compartilhar os dados de forma prática. "COPIAR LINK DO GOOGLE MAPS / VOLTAR AO FORMULARIO"
+    </p>
+
+    <button onclick="getLocation()">Obter Localização Atual</button>
+    <div class="location-info" id="location">Aguardando localização...</div>
+    <div class="error-message" id="error-message"></div>
+    <button id="copyLinkButton" onclick="copyLink()" style="display:none;">
+        Copiar Link do Google Maps
+      </button>
+
+    <!-- Botão de voltar ao formulário do Google Forms -->
+    <a href="https://docs.google.com/forms/d/e/1FAIpQLSf_lZM0qoAH5LeedUyxka3q6uZbFM1HTrz86X6DOeZpRBeT0Q/viewform"
+      class="back-button">Abrir o Formulário</a>
+  </div>
+
+  <script>
+    let currentLocation = "", currentLat = "", currentLng = "";
+
+      function getLocation() {
+          const options = {
+              enableHighAccuracy: true,
+              timeout: 5000,
+              maximumAge: 0
+          };
+
+          if (navigator.geolocation) {
+              navigator.geolocation.getCurrentPosition(showPosition, showError, options);
+          } else {
+              showErrorMessage("Geolocalização não é suportada neste navegador.");
+          }
+      }
+
+      function showPosition(position) {
+          currentLat = position.coords.latitude;
+          currentLng = position.coords.longitude;
+
+          currentLocation = `Latitude: ${currentLat}\nLongitude: ${currentLng}`;
+          document.getElementById("location").innerText = currentLocation;
+
+          saveLocation(currentLat, currentLng);
+          document.getElementById("copyLinkButton").style.display = "block";
+      }
+
+      function showError(error) {
+          const errorMessages = {
+              [error.PERMISSION_DENIED]: "Usuário negou o pedido de Geolocalização.",
+              [error.POSITION_UNAVAILABLE]: "Informações de localização não estão disponíveis.",
+              [error.TIMEOUT]: "A solicitação para obter a localização expirou.",
+              [error.UNKNOWN_ERROR]: "Ocorreu um erro desconhecido."
+          };
+          showErrorMessage(errorMessages[error.code] || "Erro desconhecido.");
+      }
+
+      function showErrorMessage(message) {
+          document.getElementById("error-message").innerText = message;
+      }
+
+      function saveLocation(lat, lng) {
+          const formUrl = 'https://docs.google.com/forms/d/e/SEU_FORM_ID/formResponse';
+          const geocoder = new google.maps.Geocoder();
+          const location = { lat: lat, lng: lng };
+
+          geocoder.geocode({ location }, function(results, status) {
+              if (status === 'OK' && results[0]) {
+                  const endereco = results[0].formatted_address;
+                  currentLocation += `\nEndereço: ${endereco}`;
+                  document.getElementById("location").innerText += `\nEndereço: ${endereco}`;
+              } else {
+                  console.error("Geocodificação falhou: " + status);
+              }
+          });
+      }
+
+      function copyLink() {
+          const link = `https://www.google.com/maps/search/?api=1&query=${currentLat},${currentLng}`;
+          copyToClipboard(link, "Link do Google Maps copiado para a área de transferência!");
+          window.open('https://docs.google.com/forms/d/e/1FAIpQLSf_lZM0qoAH5LeedUyxka3q6uZbFM1HTrz86X6DOeZpRBeT0Q/viewform', '_blank');
+      }
+
+      function copyToClipboard(text, alertMessage) {
+          const textArea = document.createElement("textarea");
+          textArea.value = text;
+          document.body.appendChild(textArea);
+          textArea.select();
+          document.execCommand("copy");
+          document.body.removeChild(textArea);
+          alert(alertMessage);
+      }
+  </script>
+
+  <!-- Inclua a biblioteca do Google Maps -->
+  <script src="https://maps.googleapis.com/maps/api/js?key=SEU_API_KEY"></script>
+</body>
+
+</html>
